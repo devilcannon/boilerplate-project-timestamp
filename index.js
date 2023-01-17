@@ -25,36 +25,39 @@ app.get("/api/hello", function (req, res) {
 });
 
 app.get('/api/:date?', (req, res) => {
-  if (req.params.date === undefined || req.params.date === '') {
-    console.log("Empty or null");
-    res.json({
-      unix: Date.now(),
-      utc: new Date().toUTCString()
-    });
-  } else {
-    const val = Date.parse(req.params.date);
-    if (!Number.isNaN(val)) {
+  if (!Number.isNaN(parseInt(req.params.date))) {
+    console.log('Is a valid number');
+    var numberRegex = /^\d+$/;
+    if (numberRegex.test(req.params.date)) {
+      console.log("Parse");
+      var d = new Date(0);
+      d.setUTCMilliseconds(parseInt(req.params.date));
+      res.json({
+        unix: parseInt(req.params.date.trim()),
+        utc: d.toUTCString()//To fix
+      });
+    } else {
       console.log("Normal");
       res.json({
         unix: Math.floor(new Date(req.params.date.trim()).getTime()),
         utc: new Date(req.params.date.trim()).toUTCString()
       });
+    }
+  } else {
+    console.log('Error parsing to number');
+    if (req.params.date === undefined || req.params.date === '') {
+      console.log("Empty or undefined");
+      res.json({
+        unix: Date.now(),
+        utc: new Date().toUTCString()
+      });
     } else {
-      if (req.params.date.length > 12) {
-        console.log("Parse");
-        var d = new Date(0);
-        d.setUTCMilliseconds(req.params.date);
-        res.json({
-          unix: req.params.date.trim(),
-          utc: d.toUTCString()//To fix
-        });
-      } else {
-        console.log("Error");
-        res.json({ error: "Invalid Date" });
-      }
+      console.log("Error");
+      res.json({ error: "Invalid Date" });
     }
   }
 });
+
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT, function () {
